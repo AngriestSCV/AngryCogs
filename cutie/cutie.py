@@ -33,19 +33,19 @@ class CallCute(commands.Cog):
             await ctx.send("No U!")
             return
 
-        user_id = user.id
+        user_id = str(user.id)
 
         cfg = self.config.guild(ctx.guild)
-        counts = await cfg.cuties()
 
-        # Check if the username has been called before
-        if user_id in counts:
-            counts[user_id] += 1
-        else:
-            counts[user_id] = 1
+        try:
+            count = await cfg.get_raw('cuties', user_id)
+        except KeyError:
+            count = 0
+
+        count += 1
 
         # Send a message with the count
-        await ctx.send(f"{user.mention} has been called cute {counts[user_id]} times.")
+        await ctx.send(f"{user.mention} has been called cute {count} times.")
 
         # Save the updated counts
-        await cfg.cuties.save(counts)
+        await cfg.cuties.set_raw(user_id, value = count)
