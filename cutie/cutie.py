@@ -4,28 +4,23 @@ import os
 import json
 import re
 from redbot.core import commands
+from redbot.core import Config
+from red_commons.logging import getLogger
+
 import discord
 
-# Path to the JSON file
-COUNTS_FILE = "callcute_counts.json"
+log = getLogger("red.AngryCogs.cutie")
 
 class CallCute(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.counts = self.load_counts()
 
-    def load_counts(self):
-        # Load the counts from the JSON file
-        if os.path.exists(COUNTS_FILE):
-            with open(COUNTS_FILE, "r") as f:
-                return json.load(f)
-        else:
-            return {}
+        self.config = Config.get_conf(self, identifier=hash("net.angrylabs.angrycogs.cutie"))
 
-    def save_counts(self):
-        # Save the counts to the JSON file
-        with open(COUNTS_FILE, "w") as f:
-            json.dump(self.counts, f)
+        default_guild = {
+            'cuties': {},
+        }
+        self.config.register_guild(**default_guild)
 
     @commands.command("cutie")
     async def call(self, ctx: commands.Context, user: discord.Member) -> None:
@@ -40,47 +35,17 @@ class CallCute(commands.Cog):
 
         user_id = user.id
 
-        # Check if the username has been called before
-        if user_id in self.counts:
-            self.counts[user_id] += 1
-        else:
-            self.counts[user_id] = 1
+        cfg = self.config.guild(ctx.guild)
+        counts = await cfg.cuties()
 
-        # Save the updated counts
-        self.save_counts()
+        # Check if the username has been called before
+        if user_id in counts:
+            counts[user_id] += 1
+        else:
+            counts[user_id] = 1
 
         # Send a message with the count
-        await ctx.send(f"{user.mention} has been called cute {self.counts[user_id]} times.")
+        await ctx.send(f"{user.mention} has been called cute {counts[user_id]} times.")
 
-
-class Compliment: #(commands.Cog):
-    """Compliment users because there's too many insults"""
-
-    __author__ = ["Airen", "JennJenn", "TrustyJAID"]
-    __version__ = "1.0.0"
-
-    def __init__(self, bot):
-        self.bot = bot
-
-    @commands.command()
-    async def compliment(self, ctx: commands.Context, user: discord.Member = None) -> None:
-        """
-        Compliment the user
-
-        `user` the user you would like to compliment
-        """
-        msg = " "
-        if user:
-            if user.id == self.bot.user.id:
-                user = ctx.message.author
-                bot_msg: List[str] = [
-                    _("Hey, I appreciate the compliment! :smile:"),
-                    _("No ***YOU'RE*** awesome! :smile:"),
-                ]
-                await ctx.send(f"{ctx.author.mention} {choice(bot_msg)}")
-
-            else:
-                await ctx.send(user.mention + msg + choice(compliments))
-        else:
-            await ctx.send(ctx.message.author.mention + msg + choice(compliments))
-
+        # Save the updated counts
+        await cfg.cuties.save(counts)
