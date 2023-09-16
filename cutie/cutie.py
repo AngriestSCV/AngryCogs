@@ -35,7 +35,7 @@ class CallCute(commands.Cog):
             return
 
         if user.id == ctx.bot.user.id:
-            await ctx.send("No U!!! d:")
+            await ctx.send("No U!")
             return
 
         user_id = user.id
