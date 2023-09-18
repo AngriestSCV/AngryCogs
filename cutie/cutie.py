@@ -33,6 +33,10 @@ class CallCute(commands.Cog):
             await ctx.send("No U!")
             return
 
+        if user.id == ctx.author.id:
+            await ctx.send("Maybe")
+            return
+
         user_id = str(user.id)
 
         cfg = self.config.guild(ctx.guild)
