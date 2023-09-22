@@ -136,7 +136,6 @@ class EventParse:
             raise ParseException(f"Channel can not be set twice")
 
         self.channel, args = await get_channel(ctx, args)
-        await ctx.send(f"channel: {self.channel}")
         return args
 
     async def get_option(self, ctx, args):
