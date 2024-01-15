@@ -7,6 +7,8 @@ from redbot.core import commands
 from redbot.core import Config
 from red_commons.logging import getLogger
 
+fromhashlib import md5
+
 import discord
 
 log = getLogger("red.AngryCogs.cutie")
@@ -15,7 +17,7 @@ class CallCute(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-        self.config = Config.get_conf(self, identifier=hash("net.angrylabs.angrycogs.cutie"))
+        self.config = Config.get_conf(self, identifier=md5(string.encode()).hexdigest())
 
         default_guild = {
             'cuties': {},
@@ -34,7 +36,7 @@ class CallCute(commands.Cog):
             return
 
         if user.id == ctx.author.id:
-            await ctx.send("Maybe")
+            await ctx.send("You sure are :3")
             return
 
         user_id = str(user.id)
