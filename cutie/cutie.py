@@ -7,7 +7,7 @@ from redbot.core import commands
 from redbot.core import Config
 from red_commons.logging import getLogger
 
-fromhashlib import md5
+from hashlib import md5
 
 import discord
 
@@ -17,7 +17,8 @@ class CallCute(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-        self.config = Config.get_conf(self, identifier=md5(string.encode()).hexdigest())
+        name = "net.angrylabs.angrycogs.cutie"
+        self.config = Config.get_conf(self, identifier=md5(name.encode()).hexdigest())
 
         default_guild = {
             'cuties': {},
