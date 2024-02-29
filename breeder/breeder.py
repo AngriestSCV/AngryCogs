@@ -169,6 +169,9 @@ class Breeder(commands.Cog):
         cfg = self.config.guild(ctx.guild)
         channel_id = await cfg.breeder_channel()
         await ctx.send(f"Channel id: {channel_id}")
+        if channel_id is None:
+            return
+
         channel = self.bot.get_channel(channel_id)
         await ctx.send(f"Channel mention: {channel.mention}")
 
