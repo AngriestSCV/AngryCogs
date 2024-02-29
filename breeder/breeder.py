@@ -160,9 +160,17 @@ class Breeder(commands.Cog):
     async def set_breeder_channel(self, ctx: commands.Context, channel: discord.TextChannel):
         cfg = self.config.guild(ctx.guild)
         await cfg.breeder_channel.set(channel.id)
+        self.get_breeder_channel(ctx)
 
-        aaa = await cfg.breeder_channel()
-        await ctx.send(f"Channel set {aaa}")
+    @commands.is_owner()
+    @commands.guild_only()
+    @breeder.command(name='get-channel')
+    async def get_breeder_channel(self, ctx: commands.Context):
+        cfg = self.config.guild(ctx.guild)
+        channel_id = await cfg.breeder_channel()
+        await ctx.send(f"Channel id: {channel_id}")
+        channel = self.bot.get_channel(channel_id)
+        await ctx.send(f"Channel mention: {channel.mention}")
 
     async def all_breeder_board(self, ctx: commands.Context) -> None:
         guilds = await self.config.all_guilds()
@@ -198,6 +206,7 @@ class Breeder(commands.Cog):
 
     @commands.guild_only()
     @breeder.command(name="test")
+    @commands.is_owner()
     async def breeder_tick_test(self, ctx):
         await self.breeder_tick(ctx)
 
