@@ -144,7 +144,7 @@ class Breeder(commands.Cog):
         if votes == 0:
             return ""
 
-        return f"With a total of {votes} votes we have some results!\n"
+        return f"With a total of {votes} votes we have some results!"
 
     async def get_top_message(self, ctx: commands.Context, db: sqlite3.Connection):
         res = db.execute('''
@@ -158,9 +158,9 @@ class Breeder(commands.Cog):
                         ''').fetchall()
 
         if len(res) == 0:
-            return "Odd. We can't seem to find a top here.\n"
+            return "Odd. We can't seem to find a top here."
 
-        lines = ["Our topmost tops are on fire\n"]
+        lines = ["Our topmost tops are on fire"]
         for uid, top in res:
             uid = int(uid)
             top = int(top)
@@ -209,27 +209,6 @@ class Breeder(commands.Cog):
             top_message,
             bottom_message
             ]).strip()
-
-        """
-        message = ""
-        if tt is not None:
-            if len(tt) > 0:
-                message += "Top report:\n"
-            for member in tt:
-                user = await ctx.guild.fetch_member(member)
-                message += f"{user.mention} has been displaying serious top energy\n"
-            if len(tt) > 0:
-                message += "\n"
-
-        if tb is not None:
-            if len(tb) > 0:
-                message += "Bottom report:\n"
-            for member in tb:
-                user = await ctx.guild.fetch_member(member)
-                message += f"{user.mention} has been displaying serious bottom energy\n"
-            if len(tb) > 0:
-                message += "\n"
-        """
 
         return message
 
