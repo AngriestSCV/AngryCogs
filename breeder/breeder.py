@@ -161,9 +161,9 @@ class Breeder(commands.Cog):
             return "Odd. We can't seem to find a top here.\n"
 
         lines = ["Our topmost tops are on fire\n"]
-        for uid, bot in res:
+        for uid, top in res:
             uid = int(uid)
-            bot = int(bot)
+            top = int(top)
             user = await ctx.guild.fetch_member(uid)
             if user is None: 
                 continue
