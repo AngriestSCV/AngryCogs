@@ -6,6 +6,7 @@ import re
 from redbot.core import commands
 from redbot.core import Config
 from red_commons.logging import getLogger
+import sqlite3
 
 from hashlib import md5
 
@@ -94,22 +95,28 @@ class Breeder(commands.Cog):
 
         return count
 
-    async def most_votes(self, cfg, key):
+    def build_query_db(self):
+        db = sqlite3.connect(":memory:")
+        #db = sqlite3.connect("/tmp/aaa.db")
+        with db:
+            db.execute('create table if not exists points (user, top, bot);')
+            db.execute('delete from points;')
+            db.commit()
+        return db
+
+    async def add_to_query_db(self, cfg, db: sqlite3.Connection, key):
         table = cfg.__getattr__(key)
 
-        high = 0
-        high_key = None
-
-        tt  = await table.all()
-        for k,v in tt.items():
-            if v > high:
-                high_key = set()
-                high_key.add(k)
-                high = v
-            elif v == high:
-                high_key.add(k)
-
-        return high_key
+        tt = await table.all()
+        with db:
+            for k,v in tt.items():
+                if key == topKey:
+                    kt = "top"
+                elif key == bottomKey:
+                    kt = 'bot'
+                else:
+                    raise Exception("Can not turn {key} into a table key")
+                db.execute(f'insert into points (user, {kt}) values (?, ?);', (k, v))
 
     @commands.group("breeder")
     async def breeder(self, ctx: commands.Context) -> None:
@@ -128,11 +135,82 @@ class Breeder(commands.Cog):
         else:
             await ctx.send(message)
 
+    def get_message_report(self, db: sqlite3.Connection):
+        res = db.execute('select sum(top) + sum(bot) from points;').fetchone()[0]
+
+        votes_str = db.execute('select coalesce(sum(top), 0) + coalesce(sum(bot), 0) from points;').fetchone()[0]
+        votes = int(votes_str)
+
+        if votes == 0:
+            return ""
+
+        return f"With a total of {votes} votes we have some results!\n"
+
+    async def get_top_message(self, ctx: commands.Context, db: sqlite3.Connection):
+        res = db.execute('''
+                        with topCounts as (
+                            select distinct top high from points where top > 0 order by top desc limit 3
+                        )
+                        select user, top 
+                        from points
+                        join topCounts on high = top 
+                        order by top desc;
+                        ''').fetchall()
+
+        if len(res) == 0:
+            return "Odd. We can't seem to find a top here.\n"
+
+        lines = ["Our topmost tops are on fire\n"]
+        for uid, bot in res:
+            uid = int(uid)
+            bot = int(bot)
+            user = await ctx.guild.fetch_member(uid)
+            if user is None: 
+                continue
+            lines.append(f'{user.mention}: Score {top}')
+        return "\n".join(lines).strip()
+
+    async def get_bottom_message(self, ctx: commands.Context, db: sqlite3.Connection):
+        res = db.execute('''
+                        with botCounts as (
+                            select distinct bot low from points where bot > 0 order by bot desc limit 3
+                        )
+                        select user, bot 
+                        from points
+                        join botCounts on low = bot 
+                        order by bot desc;
+                        ''').fetchall()
+
+        if len(res) == 0:
+            return ""
+
+        lines = ["Our biggest bottoms have really been working 'it'\n"]
+        for uid, bot in res:
+            uid = int(uid)
+            bot = int(bot)
+            user = await ctx.guild.fetch_member(uid)
+            if user is None: 
+                continue
+            lines.append(f'{user.mention}: Score {bot}')
+        return "\n".join(lines).strip()
+
     async def breeder_board_message(self, ctx: commands.Context, guild_id) -> None:
         cfg = self.config.guild_from_id(guild_id)
-        tt = await self.most_votes(cfg, topKey)
-        tb = await self.most_votes(cfg, bottomKey)
+        db = self.build_query_db()
+        await self.add_to_query_db(cfg, db, topKey)
+        await self.add_to_query_db(cfg, db, bottomKey)
 
+        vote_message = self.get_message_report(db)
+        top_message = await self.get_top_message(ctx, db)
+        bottom_message = await self.get_bottom_message(ctx, db)
+
+        message = "\n".join([
+            vote_message,
+            top_message,
+            bottom_message
+            ]).strip()
+
+        """
         message = ""
         if tt is not None:
             if len(tt) > 0:
@@ -151,6 +229,7 @@ class Breeder(commands.Cog):
                 message += f"{user.mention} has been displaying serious bottom energy\n"
             if len(tb) > 0:
                 message += "\n"
+        """
 
         return message
 
