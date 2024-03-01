@@ -184,7 +184,7 @@ class Breeder(commands.Cog):
         if len(res) == 0:
             return ""
 
-        lines = ["Our biggest bottoms have really been working 'it'\n"]
+        lines = ["Our biggest bottoms have really been working 'it'"]
         for uid, bot in res:
             uid = int(uid)
             bot = int(bot)
@@ -204,7 +204,7 @@ class Breeder(commands.Cog):
         top_message = await self.get_top_message(ctx, db)
         bottom_message = await self.get_bottom_message(ctx, db)
 
-        message = "\n".join([
+        message = "\n\n".join([
             vote_message,
             top_message,
             bottom_message
