@@ -201,6 +201,10 @@ class Breeder(commands.Cog):
         await self.add_to_query_db(cfg, db, bottomKey)
 
         vote_message = self.get_message_report(db)
+
+        if len(vote_message) == 0:
+            return ""
+
         top_message = await self.get_top_message(ctx, db)
         bottom_message = await self.get_bottom_message(ctx, db)
 
