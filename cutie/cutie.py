@@ -7,6 +7,8 @@ from redbot.core import commands
 from redbot.core import Config
 from red_commons.logging import getLogger
 
+from . import cute_messages
+
 from hashlib import md5
 
 import discord
@@ -51,8 +53,10 @@ class CallCute(commands.Cog):
 
         count += 1
 
+        msg = cute_messages.random_cute_message()
+
         # Send a message with the count
-        await ctx.send(f"{user.mention} has been called cute {count} times.")
+        await ctx.send(f"{user.mention} has been called cute {count} times.\n{msg}")
 
         # Save the updated counts
         await cfg.cuties.set_raw(user_id, value = count)
